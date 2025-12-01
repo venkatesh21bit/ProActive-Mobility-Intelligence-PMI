@@ -46,8 +46,17 @@ backend/
 ## 📋 Prerequisites
 
 - Python 3.11+
-- Docker & Docker Compose
+- Docker & Docker Compose (optional - for local infrastructure)
 - Git
+
+## 📚 Documentation
+
+- **[README.md](README.md)** - This file: Architecture & setup overview
+- **[QUICKSTART_AGENTS.md](QUICKSTART_AGENTS.md)** - Quick start guide for agents
+- **[ML_TRAINING_GUIDE.md](ML_TRAINING_GUIDE.md)** - Complete ML training documentation
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - ⚠️ **Common issues and solutions**
+- **[agents/ARCHITECTURE.md](agents/ARCHITECTURE.md)** - Detailed agent architecture
+- **[SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md)** - Complete system visualization
 
 ## 🛠️ Setup Instructions
 

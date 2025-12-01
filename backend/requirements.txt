@@ -33,7 +33,7 @@ sentence-transformers==2.2.2
 transformers==4.36.2
 
 # MLOps
-mlflow==2.9.2
+mlflow==2.15.1
 
 # Communication & Voice (Twilio)
 twilio==8.11.1

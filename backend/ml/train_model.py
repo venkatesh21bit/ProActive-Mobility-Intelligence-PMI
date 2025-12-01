@@ -149,26 +149,41 @@ class SyntheticDataGenerator:
         return pd.concat(all_data, ignore_index=True), np.array(labels)
 
 
-def train_model(experiment_name: str = "vehicle_failure_prediction"):
+def train_model(experiment_name: str = "vehicle_failure_prediction", use_mlflow: bool = True):
     """Train the anomaly detection model with optional MLflow tracking"""
     
     logger.info("Starting model training...")
     
     # Set MLflow tracking URI if available
     mlflow_enabled = False
-    if MLFLOW_AVAILABLE:
+    if MLFLOW_AVAILABLE and use_mlflow:
         try:
-            mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
-            mlflow.set_experiment(experiment_name)
-            mlflow.start_run()
-            mlflow_enabled = True
-            logger.info(f"MLflow tracking enabled at {settings.mlflow_tracking_uri}")
+            # Test connection first with a quick timeout
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)  # 1 second timeout
+            result = sock.connect_ex(('localhost', 5000))
+            sock.close()
+            
+            if result == 0:
+                # MLflow server is running
+                mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
+                mlflow.set_experiment(experiment_name)
+                mlflow.start_run()
+                mlflow_enabled = True
+                logger.info(f"✓ MLflow tracking enabled at {settings.mlflow_tracking_uri}")
+            else:
+                logger.warning("⚠ MLflow server not running on localhost:5000")
+                logger.info("→ Continuing training without MLflow tracking...")
+                logger.info("→ To enable MLflow: run 'start_mlflow.bat' in a separate terminal")
         except Exception as e:
-            logger.warning(f"MLflow server not available: {e}")
-            logger.info("Continuing training without MLflow tracking...")
+            logger.warning(f"⚠ MLflow connection failed: {e}")
+            logger.info("→ Continuing training without MLflow tracking...")
             mlflow_enabled = False
+    elif not use_mlflow:
+        logger.info("MLflow tracking disabled (use_mlflow=False)")
     else:
-        logger.info("Training without MLflow (package not installed)")
+        logger.info("MLflow package not installed - training without experiment tracking")
     
     try:
         # Log parameters
@@ -297,9 +312,24 @@ def train_model(experiment_name: str = "vehicle_failure_prediction"):
 
 
 if __name__ == "__main__":
-    # Train the model
-    model, feature_names = train_model()
+    import argparse
     
-    logger.info("Training completed successfully!")
+    parser = argparse.ArgumentParser(description='Train vehicle failure prediction model')
+    parser.add_argument('--no-mlflow', action='store_true', help='Disable MLflow tracking')
+    args = parser.parse_args()
+    
+    # Train the model
+    model, feature_names = train_model(use_mlflow=not args.no_mlflow)
+    
+    logger.info("=" * 60)
+    logger.info("✓ Training completed successfully!")
+    logger.info("=" * 60)
     logger.info(f"Feature count: {len(feature_names)}")
-    logger.info(f"Top features: {list(model.get_feature_importance(top_n=5).keys())}")
+    logger.info(f"Top 5 features: {list(model.get_feature_importance(top_n=5).keys())}")
+    logger.info(f"Model saved to: ml/models/anomaly_detection/")
+    logger.info("=" * 60)
+    logger.info("\nNext steps:")
+    logger.info("  1. Test the model: python test_ml_pipeline.py")
+    logger.info("  2. Start ML service: python api/ml_service.py")
+    logger.info("  3. Start agents: python -m agents")
+    logger.info("=" * 60)
