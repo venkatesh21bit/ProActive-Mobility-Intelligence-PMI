@@ -7,6 +7,11 @@
 .env.*.local
 !.env.example
 
+# GCP service account keys
+key.json
+*.json.key
+service-account*.json
+
 # Python
 __pycache__/
 *.py[cod]

@@ -13,11 +13,16 @@ class Customer(Base):
     customer_id = Column(Integer, primary_key=True, autoincrement=True)
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
-    email = Column(String(255), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255))  # For JWT authentication
     phone = Column(String(20))
     address = Column(Text)
+    role = Column(String(50), default='customer')  # Role for RBAC
+    is_active = Column(Boolean, default=True)
+    email_verified = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    last_login = Column(DateTime(timezone=True))
     
     # Relationships
     vehicles = relationship("Vehicle", back_populates="customer")

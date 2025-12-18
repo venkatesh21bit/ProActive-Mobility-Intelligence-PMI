@@ -25,6 +25,7 @@ from agents.diagnosis_agent import DiagnosisAgent
 from agents.customer_engagement_agent import CustomerEngagementAgent
 from agents.scheduling_agent import SchedulingAgent
 from agents.feedback_agent import FeedbackAgent
+from services.notification_service import NotificationService
 from sqlalchemy import select
 from data.database import get_db
 from data.models import Customer, Vehicle, AgentAuditLog
@@ -102,8 +103,9 @@ class MasterAgent:
     
     def __init__(self):
         self.redis_client = None
+        self.notification_service = NotificationService()
         self.diagnosis_agent = DiagnosisAgent()
-        self.customer_agent = CustomerEngagementAgent()
+        self.customer_agent = CustomerEngagementAgent(notification_service=self.notification_service)
         self.scheduling_agent = SchedulingAgent()
         self.feedback_agent = FeedbackAgent()
         

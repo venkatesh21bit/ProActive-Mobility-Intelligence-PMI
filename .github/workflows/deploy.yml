@@ -92,7 +92,7 @@ jobs:
   deploy-gcp:
     name: Deploy to Google Cloud
     needs: [test-backend, test-frontend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && secrets.GCP_SA_KEY != ''
     runs-on: ubuntu-latest
     
     steps:
@@ -102,6 +102,8 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+          create_credentials_file: true
+          export_environment_variables: true
       
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -123,7 +125,8 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --min-instances 1 \
-            --max-instances 10
+            --max-instances 10 \
+            --set-env-vars "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }},TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }},TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }},DATABASE_URL=${{ secrets.DATABASE_URL }},REDIS_URL=${{ secrets.REDIS_URL }},CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}"
             
       - name: Deploy Frontend to Cloud Storage
         working-directory: ./frontend

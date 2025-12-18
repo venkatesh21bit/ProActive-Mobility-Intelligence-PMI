@@ -20,8 +20,8 @@ async def seed_database():
         
         # Create a customer
         customer = Customer(
-            customer_id="CUST001",
-            name="Fleet Manager",
+            first_name="Fleet",
+            last_name="Manager",
             email="fleet@example.com",
             phone="+1234567890"
         )
@@ -29,41 +29,57 @@ async def seed_database():
         
         # Create a service center
         service_center = ServiceCenter(
-            center_id="SC001",
             name="Main Service Center",
             address="123 Main St",
             city="San Francisco",
             state="CA",
-            zipcode="94105",
-            phone="+1234567891",
-            specialties=["Engine", "Transmission", "Brakes"]
+            zip_code="94105",
+            phone="+1234567891"
         )
         db.add(service_center)
         
-        # Create 50 vehicles with varying health states
+        # Create 50 vehicles with varying health states - Hero MotoCorp models
         vehicles = []
         statuses = ['critical', 'warning', 'healthy']
         probabilities = [0.1, 0.3, 0.6]  # 10% critical, 30% warning, 60% healthy
         
+        hero_models = [
+            ('Splendor Plus', 'Motorcycle'),
+            ('HF Deluxe', 'Motorcycle'),
+            ('Passion Pro', 'Motorcycle'),
+            ('Glamour', 'Motorcycle'),
+            ('Super Splendor', 'Motorcycle'),
+            ('Xtreme 160R', 'Motorcycle'),
+            ('Xpulse 200', 'Adventure'),
+            ('Maestro Edge', 'Scooter'),
+            ('Pleasure Plus', 'Scooter'),
+            ('Destini 125', 'Scooter')
+        ]
+        
+        # Flush to get customer_id
+        await db.flush()
+        
         for i in range(1, 51):
             status = random.choices(statuses, probabilities)[0]
+            model, category = random.choice(hero_models)
             
             vehicle = Vehicle(
-                vehicle_id=f"VEH{i:03d}",
-                vin=f"1HGBH41JXMN{10918600 + i}",
-                customer_id="CUST001",
-                make="Toyota" if i % 3 == 0 else "Honda" if i % 3 == 1 else "Ford",
-                model="Camry" if i % 3 == 0 else "Accord" if i % 3 == 1 else "F-150",
+                vin=f"HERO{random.randint(100000, 999999)}{i:03d}",
+                customer_id=customer.customer_id,
+                make="Hero MotoCorp",
+                model=model,
                 year=2020 + (i % 5),
-                registration_date=datetime.utcnow() - timedelta(days=random.randint(365, 1825))
+                purchase_date=datetime.now() - timedelta(days=random.randint(365, 1825))
             )
             vehicles.append(vehicle)
             db.add(vehicle)
+            await db.flush()  # Get vehicle_id
             
             # Create telemetry for each vehicle
             telemetry = VehicleTelemetry(
-                vehicle_id=vehicle.vehicle_id,
-                timestamp=datetime.utcnow() - timedelta(minutes=random.randint(1, 60)),
+                time=datetime.now() - timedelta(minutes=random.randint(1, 60)),
+                vehicle_id=vehicle.vin,  # Telemetry uses VIN as vehicle_id
+                vin=vehicle.vin,
                 engine_temperature=90 + random.uniform(-10, 20) if status != 'critical' else 110 + random.uniform(0, 15),
                 coolant_temperature=85 + random.uniform(-5, 10),
                 oil_pressure=45 + random.uniform(-5, 5) if status != 'critical' else 25 + random.uniform(-5, 5),
@@ -89,11 +105,13 @@ async def seed_database():
             
             prediction = FailurePrediction(
                 vehicle_id=vehicle.vehicle_id,
-                prediction_date=datetime.utcnow() - timedelta(hours=random.randint(1, 24)),
+                vin=vehicle.vin,
+                prediction_time=datetime.now() - timedelta(hours=random.randint(1, 24)),
                 failure_probability=min(failure_prob, 0.99),
                 predicted_component=component,
+                severity=status,
                 confidence_score=0.85 + random.uniform(0, 0.10),
-                recommended_action=f"Inspect {component}" if failure_prob > 0.6 else "Schedule routine maintenance"
+                estimated_days_to_failure=7 if status == 'critical' else (30 if status == 'warning' else 90)
             )
             db.add(prediction)
             
@@ -101,12 +119,11 @@ async def seed_database():
             if status == 'critical' or (status == 'warning' and random.random() < 0.5):
                 appointment = Appointment(
                     vehicle_id=vehicle.vehicle_id,
-                    customer_id="CUST001",
-                    service_center_id="SC001",
-                    scheduled_date=datetime.utcnow() + timedelta(days=random.randint(1, 14)),
-                    service_type="Preventive Maintenance" if status == 'warning' else "Emergency Repair",
-                    estimated_duration=120 if status == 'warning' else 240,
-                    priority="medium" if status == 'warning' else "high",
+                    customer_id=customer.customer_id,
+                    center_id=service_center.center_id,
+                    scheduled_time=datetime.now() + timedelta(days=random.randint(1, 14)),
+                    appointment_type="Preventive Maintenance" if status == 'warning' else "Emergency Repair",
+                    estimated_duration_minutes=120 if status == 'warning' else 240,
                     status="scheduled" if random.random() < 0.7 else "confirmed"
                 )
                 db.add(appointment)

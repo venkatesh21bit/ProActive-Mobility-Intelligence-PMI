@@ -1,5 +1,5 @@
 {
-  "name": "mobile",
+  "name": "hero-motocorp-customer-app",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -9,11 +9,17 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.23.1",
     "axios": "^1.13.2",
     "expo": "~54.0.27",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",
-    "react-native": "0.81.5"
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-svg": "15.12.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0"
   },
   "private": true
 }

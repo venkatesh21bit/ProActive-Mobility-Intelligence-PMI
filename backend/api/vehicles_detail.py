@@ -1,0 +1,179 @@
+"""
+Vehicle Details API with component health visualization data
+"""
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from data.database import get_db_session
+from data.models import Vehicle, VehicleTelemetry, FailurePrediction
+from typing import Dict, Any
+from datetime import datetime
+
+router = APIRouter(prefix="/api/vehicles", tags=["Vehicles"])
+
+@router.get("/{vehicle_id}/details")
+async def get_vehicle_details(
+    vehicle_id: int,
+    db: AsyncSession = Depends(get_db_session)
+) -> Dict[str, Any]:
+    """Get comprehensive vehicle details including component health for 2D visualization"""
+    
+    # Get vehicle
+    vehicle_result = await db.execute(
+        select(Vehicle).where(Vehicle.vehicle_id == vehicle_id)
+    )
+    vehicle = vehicle_result.scalar_one_or_none()
+    
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+    
+    # Get latest telemetry using VIN
+    telemetry_result = await db.execute(
+        select(VehicleTelemetry)
+        .where(VehicleTelemetry.vehicle_id == vehicle.vin)
+        .order_by(VehicleTelemetry.time.desc())
+        .limit(1)
+    )
+    telemetry = telemetry_result.scalar_one_or_none()
+    
+    # Get failure predictions
+    predictions_result = await db.execute(
+        select(FailurePrediction)
+        .where(FailurePrediction.vehicle_id == vehicle_id)
+        .order_by(FailurePrediction.prediction_time.desc())
+    )
+    predictions = predictions_result.scalars().all()
+    
+    # Build component health map
+    components = {
+        "engine": {"status": "healthy", "health": 95, "issues": []},
+        "transmission": {"status": "healthy", "health": 95, "issues": []},
+        "brakes": {"status": "healthy", "health": 95, "issues": []},
+        "battery": {"status": "healthy", "health": 95, "issues": []},
+        "cooling_system": {"status": "healthy", "health": 95, "issues": []},
+        "oil_system": {"status": "healthy", "health": 95, "issues": []},
+        "suspension": {"status": "healthy", "health": 95, "issues": []},
+        "tires": {"status": "healthy", "health": 95, "issues": []},
+        "exhaust": {"status": "healthy", "health": 95, "issues": []},
+        "fuel_system": {"status": "healthy", "health": 95, "issues": []}
+    }
+    
+    # Update component health based on predictions
+    for prediction in predictions:
+        component_name = prediction.predicted_component.lower().replace(' ', '_')
+        if component_name in components:
+            failure_prob = prediction.failure_probability
+            
+            if failure_prob >= 0.7:
+                components[component_name]["status"] = "critical"
+                components[component_name]["health"] = int((1 - failure_prob) * 100)
+                components[component_name]["issues"].append({
+                    "severity": "critical",
+                    "probability": f"{failure_prob * 100:.1f}%",
+                    "estimated_days": prediction.estimated_days_to_failure,
+                    "prediction_time": prediction.prediction_time.isoformat()
+                })
+            elif failure_prob >= 0.5:
+                components[component_name]["status"] = "warning"
+                components[component_name]["health"] = int((1 - failure_prob) * 100)
+                components[component_name]["issues"].append({
+                    "severity": "warning",
+                    "probability": f"{failure_prob * 100:.1f}%",
+                    "estimated_days": prediction.estimated_days_to_failure,
+                    "prediction_time": prediction.prediction_time.isoformat()
+                })
+    
+    # Update based on telemetry
+    if telemetry:
+        # Engine health from temperature
+        if telemetry.engine_temperature > 105:
+            if components["engine"]["status"] == "healthy":
+                components["engine"]["status"] = "warning"
+                components["engine"]["health"] = min(components["engine"]["health"], 70)
+                components["engine"]["issues"].append({
+                    "severity": "warning",
+                    "message": f"High temperature: {telemetry.engine_temperature:.1f}°C",
+                    "action": "Check coolant levels"
+                })
+        
+        # Oil system from pressure
+        if telemetry.oil_pressure < 30:
+            if components["oil_system"]["status"] == "healthy":
+                components["oil_system"]["status"] = "critical"
+                components["oil_system"]["health"] = 40
+                components["oil_system"]["issues"].append({
+                    "severity": "critical",
+                    "message": f"Low oil pressure: {telemetry.oil_pressure:.1f} PSI",
+                    "action": "Immediate inspection required"
+                })
+        
+        # Battery from voltage
+        if telemetry.battery_voltage < 12.2:
+            if components["battery"]["status"] == "healthy":
+                components["battery"]["status"] = "warning"
+                components["battery"]["health"] = 60
+                components["battery"]["issues"].append({
+                    "severity": "warning",
+                    "message": f"Low voltage: {telemetry.battery_voltage:.1f}V",
+                    "action": "Check battery condition"
+                })
+        
+        # Vibration level for suspension
+        if telemetry.vibration_level > 1.0:
+            if components["suspension"]["status"] == "healthy":
+                components["suspension"]["status"] = "warning"
+                components["suspension"]["health"] = 65
+                components["suspension"]["issues"].append({
+                    "severity": "warning",
+                    "message": f"High vibration: {telemetry.vibration_level:.2f}",
+                    "action": "Inspect suspension components"
+                })
+    
+    # Calculate overall health score
+    health_scores = [comp["health"] for comp in components.values()]
+    overall_health = sum(health_scores) / len(health_scores)
+    
+    # Determine overall status
+    critical_count = sum(1 for comp in components.values() if comp["status"] == "critical")
+    warning_count = sum(1 for comp in components.values() if comp["status"] == "warning")
+    
+    if critical_count > 0:
+        overall_status = "critical"
+    elif warning_count > 0:
+        overall_status = "warning"
+    else:
+        overall_status = "healthy"
+    
+    return {
+        "vehicle": {
+            "vehicle_id": vehicle.vehicle_id,
+            "vin": vehicle.vin,
+            "make": vehicle.make,
+            "model": vehicle.model,
+            "year": vehicle.year,
+            "mileage": vehicle.mileage,
+            "purchase_date": vehicle.purchase_date.isoformat() if vehicle.purchase_date else None,
+            "warranty_expiry": vehicle.warranty_expiry.isoformat() if vehicle.warranty_expiry else None
+        },
+        "health": {
+            "overall_score": round(overall_health, 1),
+            "overall_status": overall_status,
+            "critical_components": critical_count,
+            "warning_components": warning_count,
+            "healthy_components": len(components) - critical_count - warning_count
+        },
+        "components": components,
+        "telemetry": {
+            "timestamp": telemetry.time.isoformat() if telemetry else None,
+            "engine_temperature": telemetry.engine_temperature if telemetry else None,
+            "coolant_temperature": telemetry.coolant_temperature if telemetry else None,
+            "oil_pressure": telemetry.oil_pressure if telemetry else None,
+            "battery_voltage": telemetry.battery_voltage if telemetry else None,
+            "vibration_level": telemetry.vibration_level if telemetry else None,
+            "rpm": telemetry.rpm if telemetry else None,
+            "speed": telemetry.speed if telemetry else None,
+            "odometer": telemetry.odometer if telemetry else None,
+            "fuel_level": telemetry.fuel_level if telemetry else None
+        } if telemetry else None,
+        "last_updated": datetime.utcnow().isoformat()
+    }

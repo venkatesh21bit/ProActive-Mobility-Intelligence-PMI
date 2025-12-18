@@ -36,16 +36,20 @@ class AlertItem(BaseModel):
     timestamp: datetime
     status: str
     predicted_component: str | None = None
+    failure_probability: float | None = None
+    predicted_failure_date: datetime | None = None
 
 
 class VehicleStatus(BaseModel):
     vehicle_id: int
     vin: str
+    make: str | None = None
+    model: str | None = None
+    year: int | None = None
     status: str
     health_score: float
     last_reading: datetime
     mileage: float | None = None
-    model: str | None = None
 
 
 class RecentPrediction(BaseModel):
@@ -54,7 +58,7 @@ class RecentPrediction(BaseModel):
     vin: str
     failure_probability: float
     predicted_component: str
-    prediction_date: datetime
+    prediction_time: datetime
     severity: str
 
 
@@ -162,6 +166,11 @@ async def get_recent_alerts(
         component = pred.predicted_component or "component"
         message = f"{component.replace('_', ' ').title()} failure predicted"
         
+        # Calculate predicted failure date from estimated days
+        predicted_failure_date = None
+        if pred.estimated_days_to_failure:
+            predicted_failure_date = pred.prediction_time + timedelta(days=pred.estimated_days_to_failure)
+        
         alerts.append(AlertItem(
             id=pred.prediction_id,
             vehicle_id=vehicle.vehicle_id,
@@ -170,7 +179,9 @@ async def get_recent_alerts(
             message=message,
             timestamp=pred.prediction_time,
             status=status,
-            predicted_component=pred.predicted_component
+            predicted_component=pred.predicted_component,
+            failure_probability=pred.failure_probability,
+            predicted_failure_date=predicted_failure_date
         ))
     
     return alerts
@@ -178,7 +189,7 @@ async def get_recent_alerts(
 
 @router.get("/vehicles", response_model=List[VehicleStatus])
 async def get_vehicle_status(
-    limit: int = 20,
+    limit: int = 100,
     db: AsyncSession = Depends(get_db_session)
 ):
     """Get vehicle health status"""
@@ -194,7 +205,7 @@ async def get_vehicle_status(
         # Get latest telemetry
         telemetry_query = (
             select(VehicleTelemetry)
-            .where(VehicleTelemetry.vehicle_id == str(vehicle.vehicle_id))
+            .where(VehicleTelemetry.vehicle_id == vehicle.vin)
             .order_by(desc(VehicleTelemetry.time))
             .limit(1)
         )
@@ -211,10 +222,10 @@ async def get_vehicle_status(
         prediction_result = await db.execute(prediction_query)
         latest_prediction = prediction_result.scalar_one_or_none()
         
-        # Determine status and health score
+        # Determine status and health score (0-10 scale for frontend)
         if latest_prediction:
             failure_prob = latest_prediction.failure_probability
-            health_score = round((1 - failure_prob) * 100, 1)
+            health_score = round((1 - failure_prob) * 10, 1)
             
             if failure_prob >= 0.7:
                 status = "critical"
@@ -223,7 +234,7 @@ async def get_vehicle_status(
             else:
                 status = "healthy"
         else:
-            health_score = 85.0  # Default for vehicles without predictions
+            health_score = 8.5  # Default for vehicles without predictions (0-10 scale)
             status = "healthy"
         
         last_reading = latest_telemetry.time if latest_telemetry else vehicle.created_at
@@ -231,11 +242,13 @@ async def get_vehicle_status(
         vehicle_statuses.append(VehicleStatus(
             vehicle_id=vehicle.vehicle_id,
             vin=vehicle.vin,
+            make=vehicle.make,
+            model=vehicle.model,
+            year=vehicle.year,
             status=status,
             health_score=health_score,
             last_reading=last_reading,
-            mileage=latest_telemetry.odometer if latest_telemetry else None,
-            model=vehicle.model
+            mileage=latest_telemetry.odometer if latest_telemetry else vehicle.mileage
         ))
     
     return vehicle_statuses
@@ -276,7 +289,7 @@ async def get_recent_predictions(
             vin=vehicle.vin,
             failure_probability=round(pred.failure_probability, 3),
             predicted_component=pred.predicted_component or "Unknown",
-            prediction_date=pred.prediction_time,
+            prediction_time=pred.prediction_time,
             severity=severity
         ))
     

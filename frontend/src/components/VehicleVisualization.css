@@ -1,0 +1,385 @@
+.vehicle-viz-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.vehicle-viz-content {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 1rem;
+  max-width: 1400px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  border: 1px solid #2d3748;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #ef4444;
+  border: none;
+  border-radius: 0.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 10;
+}
+
+.close-button:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+.vehicle-viz-header {
+  padding: 2rem;
+  border-bottom: 1px solid #2d3748;
+}
+
+.vehicle-viz-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.75rem;
+  color: #fff;
+}
+
+.vin-info {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.health-summary {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.health-score {
+  background: #0f172a;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+.health-score.critical {
+  border: 2px solid #ef4444;
+}
+
+.health-score.warning {
+  border: 2px solid #f59e0b;
+}
+
+.health-score.healthy {
+  border: 2px solid #22c55e;
+}
+
+.score-label {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.score-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.status-badge.critical {
+  background: #ef4444;
+  color: #fff;
+}
+
+.status-badge.warning {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.status-badge.healthy {
+  background: #22c55e;
+  color: #fff;
+}
+
+.component-counts {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.count-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #0f172a;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.count-item.critical {
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.count-item.warning {
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+}
+
+.count-item.healthy {
+  color: #22c55e;
+  border: 1px solid #22c55e;
+}
+
+.vehicle-viz-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .vehicle-viz-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vehicle-svg-container {
+  position: relative;
+}
+
+.vehicle-svg {
+  width: 100%;
+  height: auto;
+  background: #0f172a;
+  border-radius: 0.75rem;
+  border: 1px solid #2d3748;
+}
+
+.component-area {
+  transition: all 0.2s;
+}
+
+.component-area:hover {
+  filter: brightness(1.2);
+}
+
+.legend {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #e5e7eb;
+}
+
+.legend-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 0.25rem;
+}
+
+.component-details-panel {
+  background: #0f172a;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid #2d3748;
+}
+
+.component-details-panel h3 {
+  margin: 0 0 1rem 0;
+  color: #fff;
+  font-size: 1.25rem;
+}
+
+.component-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.component-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.component-list::-webkit-scrollbar-track {
+  background: #1e293b;
+  border-radius: 3px;
+}
+
+.component-list::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 3px;
+}
+
+.component-item {
+  background: #1e293b;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.component-item:hover,
+.component-item.active {
+  border-color: #3b82f6;
+  background: #1e293b;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.component-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.component-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  font-size: 0.875rem;
+}
+
+.health-percentage {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.health-percentage.critical {
+  color: #ef4444;
+}
+
+.health-percentage.warning {
+  color: #f59e0b;
+}
+
+.health-percentage.healthy {
+  color: #22c55e;
+}
+
+.component-issues {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.issue-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  border-left: 3px solid #f59e0b;
+}
+
+.component-healthy-msg {
+  font-size: 0.75rem;
+  color: #22c55e;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.telemetry-footer {
+  padding: 2rem;
+  border-top: 1px solid #2d3748;
+  background: #0f172a;
+}
+
+.telemetry-footer h4 {
+  margin: 0 0 1rem 0;
+  color: #fff;
+  font-size: 1.125rem;
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.telemetry-item {
+  background: #1e293b;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.telemetry-item .label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.telemetry-item .value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: center;
+  margin: 0;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #9ca3af;
+  font-size: 1.125rem;
+}
