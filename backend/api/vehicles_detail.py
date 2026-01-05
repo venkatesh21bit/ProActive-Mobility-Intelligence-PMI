@@ -190,9 +190,9 @@ async def get_vehicle_details(
                     "action": "Inspect suspension components"
                 })
     
-    # Use vehicle's actual health score from database
+    # Use calculated health score and status (already computed from predictions)
     overall_health = vehicle_health_score * 10  # Convert to 0-100 scale
-    overall_status = vehicle.status if vehicle.status else "healthy"
+    overall_status = vehicle_status  # Use the status we calculated earlier
     
     # Count component statuses for summary
     critical_count = sum(1 for comp in components.values() if comp["status"] == "critical")
