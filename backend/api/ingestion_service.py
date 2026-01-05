@@ -850,6 +850,28 @@ async def seed_notification_history():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/seed-database")
+async def seed_database_now():
+    """
+    Seed the database with sample data (50 vehicles, customers, telemetry, etc.)
+    This endpoint runs on Railway where postgres.railway.internal is accessible
+    """
+    try:
+        from seed_dashboard_data import seed_database
+        
+        logger.info("Starting database seed...")
+        await seed_database()
+        logger.info("Database seeded successfully!")
+        
+        return {
+            "status": "success",
+            "message": "Database seeded with 50 vehicles and related data"
+        }
+    except Exception as e:
+        logger.error(f"Database seed error: {e}")
+        raise HTTPException(status_code=500, detail=f"Seed error: {str(e)}")
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "ingestion_service:app",
