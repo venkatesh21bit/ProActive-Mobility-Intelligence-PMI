@@ -58,7 +58,11 @@ Go to **Variables** tab and add:
 
 ```bash
 # Database (Reference PostgreSQL)
+# Railway provides DATABASE_URL automatically, but ensure it uses asyncpg
 DATABASE_URL=${{Postgres.DATABASE_URL}}
+
+# If above doesn't work, manually construct it:
+# DATABASE_URL=postgresql+asyncpg://username:password@host:port/database
 
 # Redis (Reference Redis)
 REDIS_URL=${{Redis.REDIS_URL}}
