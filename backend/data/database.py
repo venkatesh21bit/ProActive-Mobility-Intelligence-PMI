@@ -7,19 +7,27 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Async engine for FastAPI with SSL support
+# Prepare connect_args based on environment
+connect_args = {
+    "server_settings": {
+        "application_name": "pmi_ingestion_service"
+    }
+}
+
+# Add SSL for production environments (Railway, etc.)
+# Railway DATABASE_URL already includes SSL parameters, so we don't force it
+if settings.environment == "production":
+    # Don't force SSL here - let the connection string handle it
+    pass
+
+# Async engine for FastAPI
 async_engine = create_async_engine(
     settings.database_url,
     echo=False,
     pool_size=20,
     max_overflow=40,
     pool_pre_ping=True,
-    connect_args={
-        "ssl": "require",  # Required for Railway and most cloud databases
-        "server_settings": {
-            "application_name": "pmi_ingestion_service"
-        }
-    }
+    connect_args=connect_args
 )
 
 # Async session factory
