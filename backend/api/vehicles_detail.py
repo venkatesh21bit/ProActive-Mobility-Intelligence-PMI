@@ -129,7 +129,7 @@ async def get_vehicle_details(
     # Update based on telemetry
     if telemetry:
         # Engine health from temperature
-        if telemetry.engine_temperature > 105:
+        if telemetry.engine_temperature and telemetry.engine_temperature > 105:
             if components["engine"]["status"] == "healthy":
                 components["engine"]["status"] = "warning"
                 components["engine"]["health"] = min(components["engine"]["health"], 70)
@@ -140,7 +140,7 @@ async def get_vehicle_details(
                 })
         
         # Oil system from pressure
-        if telemetry.oil_pressure < 30:
+        if telemetry.oil_pressure and telemetry.oil_pressure < 30:
             if components["oil_system"]["status"] == "healthy":
                 components["oil_system"]["status"] = "critical"
                 components["oil_system"]["health"] = 40
@@ -151,7 +151,7 @@ async def get_vehicle_details(
                 })
         
         # Battery from voltage
-        if telemetry.battery_voltage < 12.2:
+        if telemetry.battery_voltage and telemetry.battery_voltage < 12.2:
             if components["battery"]["status"] == "healthy":
                 components["battery"]["status"] = "warning"
                 components["battery"]["health"] = 60
@@ -162,7 +162,7 @@ async def get_vehicle_details(
                 })
         
         # Vibration level for suspension
-        if telemetry.vibration_level > 1.0:
+        if telemetry.vibration_level and telemetry.vibration_level > 1.0:
             if components["suspension"]["status"] == "healthy":
                 components["suspension"]["status"] = "warning"
                 components["suspension"]["health"] = 65
