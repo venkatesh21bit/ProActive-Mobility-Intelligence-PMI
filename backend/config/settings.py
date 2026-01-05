@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     # Application
     app_name: str = "ProActive Mobility Intelligence"
     app_version: str = "1.0.0"
+    environment: str = "development"
     api_port: int = 8000
     simulator_port: int = 8001
     
