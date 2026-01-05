@@ -44,19 +44,51 @@ async def get_vehicle_details(
     )
     predictions = predictions_result.scalars().all()
     
-    # Build component health map
+    # Get vehicle's actual health score from database
+    vehicle_health_score = vehicle.health_score if vehicle.health_score else 8.0
+    
+    # Build component health map - use vehicle's actual status to determine initial state
+    # If vehicle status is critical/warning, distribute it across components
+    base_health = int(vehicle_health_score * 10)  # Convert 0-10 scale to 0-100
+    
+    # Determine how many components should be degraded based on vehicle status
+    if vehicle.status == 'critical':
+        # For critical vehicles, make 2-3 components critical and some warning
+        base_status = "warning"
+        base_component_health = max(40, base_health - 10)
+    elif vehicle.status == 'warning':
+        # For warning vehicles, make some components warning
+        base_status = "healthy"
+        base_component_health = max(60, base_health)
+    else:
+        # Healthy vehicles have healthy components
+        base_status = "healthy"
+        base_component_health = min(95, base_health)
+    
     components = {
-        "engine": {"status": "healthy", "health": 95, "issues": []},
-        "transmission": {"status": "healthy", "health": 95, "issues": []},
-        "brakes": {"status": "healthy", "health": 95, "issues": []},
-        "battery": {"status": "healthy", "health": 95, "issues": []},
-        "cooling_system": {"status": "healthy", "health": 95, "issues": []},
-        "oil_system": {"status": "healthy", "health": 95, "issues": []},
-        "suspension": {"status": "healthy", "health": 95, "issues": []},
-        "tires": {"status": "healthy", "health": 95, "issues": []},
-        "exhaust": {"status": "healthy", "health": 95, "issues": []},
-        "fuel_system": {"status": "healthy", "health": 95, "issues": []}
+        "engine": {"status": base_status, "health": base_component_health, "issues": []},
+        "transmission": {"status": base_status, "health": base_component_health, "issues": []},
+        "brakes": {"status": base_status, "health": base_component_health, "issues": []},
+        "battery": {"status": base_status, "health": base_component_health, "issues": []},
+        "cooling_system": {"status": base_status, "health": base_component_health, "issues": []},
+        "oil_system": {"status": base_status, "health": base_component_health, "issues": []},
+        "suspension": {"status": base_status, "health": base_component_health, "issues": []},
+        "tires": {"status": base_status, "health": base_component_health, "issues": []},
+        "exhaust": {"status": base_status, "health": base_component_health, "issues": []},
+        "fuel_system": {"status": base_status, "health": base_component_health, "issues": []}
     }
+    
+    # For critical vehicles, mark a few specific components as critical
+    if vehicle.status == 'critical':
+        critical_components = ['engine', 'transmission', 'brakes'][:2]  # Pick 2 components
+        for comp_name in critical_components:
+            components[comp_name]["status"] = "critical"
+            components[comp_name]["health"] = max(20, base_health - 30)
+            components[comp_name]["issues"].append({
+                "severity": "critical",
+                "message": "Component requires immediate attention",
+                "action": "Schedule service immediately"
+            })
     
     # Update component health based on predictions
     for prediction in predictions:
@@ -129,20 +161,13 @@ async def get_vehicle_details(
                     "action": "Inspect suspension components"
                 })
     
-    # Calculate overall health score
-    health_scores = [comp["health"] for comp in components.values()]
-    overall_health = sum(health_scores) / len(health_scores)
+    # Use vehicle's actual health score from database
+    overall_health = vehicle_health_score * 10  # Convert to 0-100 scale
+    overall_status = vehicle.status if vehicle.status else "healthy"
     
-    # Determine overall status
+    # Count component statuses for summary
     critical_count = sum(1 for comp in components.values() if comp["status"] == "critical")
     warning_count = sum(1 for comp in components.values() if comp["status"] == "warning")
-    
-    if critical_count > 0:
-        overall_status = "critical"
-    elif warning_count > 0:
-        overall_status = "warning"
-    else:
-        overall_status = "healthy"
     
     return {
         "vehicle": {
