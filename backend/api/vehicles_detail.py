@@ -18,46 +18,64 @@ async def get_vehicle_details(
 ) -> Dict[str, Any]:
     """Get comprehensive vehicle details including component health for 2D visualization"""
     
-    # Get vehicle
-    vehicle_result = await db.execute(
-        select(Vehicle).where(Vehicle.vehicle_id == vehicle_id)
-    )
-    vehicle = vehicle_result.scalar_one_or_none()
-    
-    if not vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
-    
-    # Get latest telemetry using VIN
-    telemetry_result = await db.execute(
-        select(VehicleTelemetry)
-        .where(VehicleTelemetry.vehicle_id == vehicle.vin)
-        .order_by(VehicleTelemetry.time.desc())
-        .limit(1)
-    )
-    telemetry = telemetry_result.scalar_one_or_none()
-    
-    # Get failure predictions
-    predictions_result = await db.execute(
-        select(FailurePrediction)
-        .where(FailurePrediction.vehicle_id == vehicle_id)
-        .order_by(FailurePrediction.prediction_time.desc())
-    )
-    predictions = predictions_result.scalars().all()
+    try:
+        # Get vehicle
+        vehicle_result = await db.execute(
+            select(Vehicle).where(Vehicle.vehicle_id == vehicle_id)
+        )
+        vehicle = vehicle_result.scalar_one_or_none()
+        
+        if not vehicle:
+            raise HTTPException(status_code=404, detail="Vehicle not found")
+        
+        # Get latest telemetry using VIN
+        try:
+            telemetry_result = await db.execute(
+                select(VehicleTelemetry)
+                .where(VehicleTelemetry.vehicle_id == vehicle.vin)
+                .order_by(VehicleTelemetry.time.desc())
+                .limit(1)
+            )
+            telemetry = telemetry_result.scalar_one_or_none()
+        except Exception as e:
+            print(f"Error fetching telemetry: {e}")
+            telemetry = None
+        
+        # Get failure predictions
+        try:
+            predictions_result = await db.execute(
+                select(FailurePrediction)
+                .where(FailurePrediction.vehicle_id == vehicle_id)
+                .order_by(FailurePrediction.prediction_time.desc())
+            )
+            predictions = predictions_result.scalars().all()
+        except Exception as e:
+            print(f"Error fetching predictions: {e}")
+            predictions = []
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in get_vehicle_details: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     
     # Calculate vehicle's health score same way as dashboard
     vehicle_health_score = 8.5  # Default
     vehicle_status = "healthy"
     
     if predictions:
-        # Get highest failure probability
-        max_failure_prob = max(p.failure_probability for p in predictions)
-        vehicle_health_score = round((1 - max_failure_prob) * 10, 1)
-        
-        # Determine status based on health score
-        if vehicle_health_score < 5:
-            vehicle_status = "critical"
-        elif vehicle_health_score < 8:
-            vehicle_status = "warning"
+        try:
+            # Get highest failure probability
+            max_failure_prob = max(getattr(p, 'failure_probability', 0.1) for p in predictions)
+            vehicle_health_score = round((1 - max_failure_prob) * 10, 1)
+            
+            # Determine status based on health score
+            if vehicle_health_score < 5:
+                vehicle_status = "critical"
+            elif vehicle_health_score < 8:
+                vehicle_status = "warning"
+        except Exception as e:
+            print(f"Error calculating health score: {e}")
+            # Keep defaults
     
     # Build component health map with base healthy state
     components = {
@@ -99,28 +117,32 @@ async def get_vehicle_details(
     
     # Update component health based on predictions
     for prediction in predictions:
-        component_name = prediction.predicted_component.lower().replace(' ', '_')
-        if component_name in components:
-            failure_prob = prediction.failure_probability
-            
-            if failure_prob >= 0.7:
-                components[component_name]["status"] = "critical"
-                components[component_name]["health"] = int((1 - failure_prob) * 100)
-                components[component_name]["issues"].append({
-                    "severity": "critical",
-                    "probability": f"{failure_prob * 100:.1f}%",
-                    "estimated_days": prediction.estimated_days_to_failure,
-                    "prediction_time": prediction.prediction_time.isoformat()
-                })
-            elif failure_prob >= 0.5:
-                components[component_name]["status"] = "warning"
-                components[component_name]["health"] = int((1 - failure_prob) * 100)
-                components[component_name]["issues"].append({
-                    "severity": "warning",
-                    "probability": f"{failure_prob * 100:.1f}%",
-                    "estimated_days": prediction.estimated_days_to_failure,
-                    "prediction_time": prediction.prediction_time.isoformat()
-                })
+        try:
+            component_name = getattr(prediction, 'predicted_component', '').lower().replace(' ', '_')
+            if component_name in components:
+                failure_prob = getattr(prediction, 'failure_probability', 0.0)
+                
+                if failure_prob >= 0.7:
+                    components[component_name]["status"] = "critical"
+                    components[component_name]["health"] = int((1 - failure_prob) * 100)
+                    components[component_name]["issues"].append({
+                        "severity": "critical",
+                        "probability": f"{failure_prob * 100:.1f}%",
+                        "estimated_days": getattr(prediction, 'estimated_days_to_failure', 0),
+                        "prediction_time": getattr(prediction, 'prediction_time', datetime.utcnow()).isoformat()
+                    })
+                elif failure_prob >= 0.5:
+                    components[component_name]["status"] = "warning"
+                    components[component_name]["health"] = int((1 - failure_prob) * 100)
+                    components[component_name]["issues"].append({
+                        "severity": "warning",
+                        "probability": f"{failure_prob * 100:.1f}%",
+                        "estimated_days": getattr(prediction, 'estimated_days_to_failure', 0),
+                        "prediction_time": getattr(prediction, 'prediction_time', datetime.utcnow()).isoformat()
+                    })
+        except Exception as e:
+            print(f"Error processing prediction: {e}")
+            continue
     
     # Update based on telemetry
     if telemetry:
