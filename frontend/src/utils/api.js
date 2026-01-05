@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Backend API URL
-const API_BASE_URL = 'https://pmi-backend-418022813675.us-central1.run.app';
+// Backend API URL - Railway Production
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://proactive-mobility-intelligence-pmi-production.up.railway.app';
 
 // Create axios instance
 const api = axios.create({

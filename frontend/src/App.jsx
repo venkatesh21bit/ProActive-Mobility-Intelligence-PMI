@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
-import { Menu, AlertTriangle, X } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
 import Dashboard from './pages/Dashboard';
@@ -15,7 +15,6 @@ import './App.css';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [billingWarningVisible, setBillingWarningVisible] = useState(true);
 
   return (
     <Router>
@@ -24,24 +23,6 @@ function App() {
         <button className="menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
           <Menu size={24} />
         </button>
-        
-        {billingWarningVisible && (
-          <div className="billing-warning">
-            <div className="billing-warning-content">
-              <AlertTriangle size={20} />
-              <div className="billing-warning-text">
-                <strong>BILLING ALERT:</strong> Google Cloud services were temporarily disabled due to continuous data ingestion exceeding billing threshold. Immediate payment was required to restore services. Data ingestion has been optimized to prevent future overages.
-              </div>
-              <button 
-                className="billing-warning-close"
-                onClick={() => setBillingWarningVisible(false)}
-                aria-label="Close warning"
-              >
-                <X size={18} />
-              </button>
-            </div>
-          </div>
-        )}
         
         <main className={`main-content ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
           <Routes>

@@ -302,7 +302,7 @@ export default function AgentWorkflow() {
             <ul style={{ color: '#9ca3af', fontSize: '0.875rem', lineHeight: '1.8' }}>
               <li>Twilio - SMS & Voice alerts</li>
               <li>FastAPI - REST APIs</li>
-              <li>Google Cloud Run - Deployment</li>
+              <li>Railway - Production Deployment</li>
             </ul>
           </div>
         </div>

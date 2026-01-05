@@ -150,10 +150,10 @@ export default function Dashboard() {
               </div>
             );
           }) : (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '0.75rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '0.75rem' }}>
               <AlertTriangle size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-              <p style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>All Backend Services Disabled</p>
-              <p style={{ fontSize: '0.875rem', opacity: 0.8 }}>Services were disabled due to billing threshold exceeded. Payment required to restore operations.</p>
+              <p style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>No Recent Alerts</p>
+              <p style={{ fontSize: '0.875rem', opacity: 0.8 }}>All systems are operating normally.</p>
             </div>
           )}
         </div>
