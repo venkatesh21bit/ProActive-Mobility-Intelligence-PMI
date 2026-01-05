@@ -85,6 +85,12 @@ class Settings(BaseSettings):
     # Service Center
     service_center_api_url: str = "http://localhost:8002"
     
+    def model_post_init(self, __context) -> None:
+        """Post-initialization to fix database URL for asyncpg"""
+        # Railway and other platforms provide postgresql:// but we need postgresql+asyncpg://
+        if self.database_url.startswith("postgresql://"):
+            self.database_url = self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    
     @property
     def redis_stream_name(self) -> str:
         return "vehicle:telemetry"
