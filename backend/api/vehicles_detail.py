@@ -59,46 +59,42 @@ async def get_vehicle_details(
         elif vehicle_health_score < 8:
             vehicle_status = "warning"
     
-    # Build component health map - use calculated status to determine initial state
-    base_health = int(vehicle_health_score * 10)  # Convert 0-10 scale to 0-100
-    
-    # Determine component states based on vehicle status
-    if vehicle_status == 'critical':
-        # For critical vehicles, make 2-3 components critical and some warning
-        base_status = "warning"
-        base_component_health = max(40, base_health - 10)
-    elif vehicle_status == 'warning':
-        # For warning vehicles, make some components warning
-        base_status = "healthy"
-        base_component_health = max(60, base_health)
-    else:
-        # Healthy vehicles have healthy components
-        base_status = "healthy"
-        base_component_health = min(95, base_health)
-    
+    # Build component health map with base healthy state
     components = {
-        "engine": {"status": base_status, "health": base_component_health, "issues": []},
-        "transmission": {"status": base_status, "health": base_component_health, "issues": []},
-        "brakes": {"status": base_status, "health": base_component_health, "issues": []},
-        "battery": {"status": base_status, "health": base_component_health, "issues": []},
-        "cooling_system": {"status": base_status, "health": base_component_health, "issues": []},
-        "oil_system": {"status": base_status, "health": base_component_health, "issues": []},
-        "suspension": {"status": base_status, "health": base_component_health, "issues": []},
-        "tires": {"status": base_status, "health": base_component_health, "issues": []},
-        "exhaust": {"status": base_status, "health": base_component_health, "issues": []},
-        "fuel_system": {"status": base_status, "health": base_component_health, "issues": []}
+        "engine": {"status": "healthy", "health": 85, "issues": []},
+        "transmission": {"status": "healthy", "health": 85, "issues": []},
+        "brakes": {"status": "healthy", "health": 85, "issues": []},
+        "battery": {"status": "healthy", "health": 85, "issues": []},
+        "cooling_system": {"status": "healthy", "health": 85, "issues": []},
+        "oil_system": {"status": "healthy", "health": 85, "issues": []},
+        "suspension": {"status": "healthy", "health": 85, "issues": []},
+        "tires": {"status": "healthy", "health": 85, "issues": []},
+        "exhaust": {"status": "healthy", "health": 85, "issues": []},
+        "fuel_system": {"status": "healthy", "health": 85, "issues": []}
     }
     
-    # For critical vehicles, mark a few specific components as critical
+    # Update components based on vehicle's overall status
     if vehicle_status == 'critical':
-        critical_components = ['engine', 'transmission', 'brakes'][:2]  # Pick 2 components
-        for comp_name in critical_components:
-            components[comp_name]["status"] = "critical"
-            components[comp_name]["health"] = max(20, base_health - 30)
-            components[comp_name]["issues"].append({
+        # Mark some components as critical for critical vehicles
+        critical_comps = ['engine', 'transmission']
+        for comp in critical_comps:
+            components[comp]["status"] = "critical"
+            components[comp]["health"] = max(10, int(vehicle_health_score * 10))
+            components[comp]["issues"].append({
                 "severity": "critical",
                 "message": "Component requires immediate attention",
                 "action": "Schedule service immediately"
+            })
+    elif vehicle_status == 'warning':
+        # Mark some components as warning for warning vehicles
+        warning_comps = ['engine', 'brakes']
+        for comp in warning_comps:
+            components[comp]["status"] = "warning"
+            components[comp]["health"] = max(50, int(vehicle_health_score * 10))
+            components[comp]["issues"].append({
+                "severity": "warning",
+                "message": "Component needs attention soon",
+                "action": "Schedule maintenance"
             })
     
     # Update component health based on predictions
