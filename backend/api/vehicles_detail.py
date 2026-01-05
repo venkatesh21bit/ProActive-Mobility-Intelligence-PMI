@@ -44,19 +44,30 @@ async def get_vehicle_details(
     )
     predictions = predictions_result.scalars().all()
     
-    # Get vehicle's actual health score from database
-    vehicle_health_score = vehicle.health_score if vehicle.health_score else 8.0
+    # Calculate vehicle's health score same way as dashboard
+    vehicle_health_score = 8.5  # Default
+    vehicle_status = "healthy"
     
-    # Build component health map - use vehicle's actual status to determine initial state
-    # If vehicle status is critical/warning, distribute it across components
+    if predictions:
+        # Get highest failure probability
+        max_failure_prob = max(p.failure_probability for p in predictions)
+        vehicle_health_score = round((1 - max_failure_prob) * 10, 1)
+        
+        # Determine status based on health score
+        if vehicle_health_score < 5:
+            vehicle_status = "critical"
+        elif vehicle_health_score < 8:
+            vehicle_status = "warning"
+    
+    # Build component health map - use calculated status to determine initial state
     base_health = int(vehicle_health_score * 10)  # Convert 0-10 scale to 0-100
     
-    # Determine how many components should be degraded based on vehicle status
-    if vehicle.status == 'critical':
+    # Determine component states based on vehicle status
+    if vehicle_status == 'critical':
         # For critical vehicles, make 2-3 components critical and some warning
         base_status = "warning"
         base_component_health = max(40, base_health - 10)
-    elif vehicle.status == 'warning':
+    elif vehicle_status == 'warning':
         # For warning vehicles, make some components warning
         base_status = "healthy"
         base_component_health = max(60, base_health)
@@ -79,7 +90,7 @@ async def get_vehicle_details(
     }
     
     # For critical vehicles, mark a few specific components as critical
-    if vehicle.status == 'critical':
+    if vehicle_status == 'critical':
         critical_components = ['engine', 'transmission', 'brakes'][:2]  # Pick 2 components
         for comp_name in critical_components:
             components[comp_name]["status"] = "critical"
