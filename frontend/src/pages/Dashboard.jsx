@@ -124,32 +124,38 @@ export default function Dashboard() {
       </div>
 
       {/* Live Agent Activity */}
-      <div style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', borderRadius: '1rem', padding: '2rem', marginBottom: '2rem', color: '#fff' }}>
+      <div style={{ background: 'linear-gradient(135deg, #991b1b 0%, #dc2626 100%)', borderRadius: '1rem', padding: '2rem', marginBottom: '2rem', color: '#fff', border: '2px solid #ef4444' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-          <Zap size={28} />
+          <AlertTriangle size={28} />
           <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Live Agent Activity</h2>
-          <span style={{ marginLeft: 'auto', background: 'rgba(34, 197, 94, 0.3)', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: '600' }}>
-            <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%', marginRight: '0.5rem', animation: 'pulse 2s infinite' }}></span>
-            All Systems Operational
+          <span style={{ marginLeft: 'auto', background: 'rgba(239, 68, 68, 0.3)', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: '600', border: '1px solid rgba(239, 68, 68, 0.5)' }}>
+            <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%', marginRight: '0.5rem' }}></span>
+            Systems Disabled - Billing Issue
           </span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-          {agentActivity.map((activity, idx) => {
+          {agentActivity.length > 0 ? agentActivity.map((activity, idx) => {
             const Icon = activity.icon;
             return (
-              <div key={idx} style={{ background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', borderRadius: '0.75rem', padding: '1rem', border: '1px solid rgba(255, 255, 255, 0.2)' }}>
+              <div key={idx} style={{ background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', borderRadius: '0.75rem', padding: '1rem', border: '1px solid rgba(239, 68, 68, 0.3)', opacity: 0.6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
                   <Icon size={20} />
                   <span style={{ fontWeight: '600', fontSize: '0.9375rem' }}>{activity.agent}</span>
                 </div>
                 <p style={{ margin: 0, fontSize: '0.875rem', opacity: 0.9 }}>{activity.action}</p>
                 <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '6px', height: '6px', background: activity.status === 'active' ? '#22c55e' : '#f59e0b', borderRadius: '50%', animation: activity.status === 'active' ? 'pulse 1.5s infinite' : 'none' }}></div>
-                  {activity.status === 'active' ? 'Active' : 'Ready'}
+                  <div style={{ width: '6px', height: '6px', background: '#ef4444', borderRadius: '50%' }}></div>
+                  Disabled
                 </div>
               </div>
             );
-          })}
+          }) : (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '0.75rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+              <AlertTriangle size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+              <p style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>All Backend Services Disabled</p>
+              <p style={{ fontSize: '0.875rem', opacity: 0.8 }}>Services were disabled due to billing threshold exceeded. Payment required to restore operations.</p>
+            </div>
+          )}
         </div>
       </div>
       

@@ -86,6 +86,91 @@ body {
   left: 276px;
 }
 
+/* Billing Warning Banner */
+.billing-warning {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1002;
+  max-width: 500px;
+  animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.billing-warning-content {
+  background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
+  border: 2px solid #ef4444;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4), 0 0 0 1px rgba(239, 68, 68, 0.1);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  backdrop-filter: blur(10px);
+}
+
+.billing-warning-content svg:first-child {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  color: #fef2f2;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.billing-warning-text {
+  flex: 1;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #fef2f2;
+}
+
+.billing-warning-text strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.billing-warning-close {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: #fef2f2;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.billing-warning-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: scale(1.1);
+}
+
 @media (max-width: 768px) {
   .app.sidebar-open,
   .app.sidebar-closed {
@@ -94,6 +179,22 @@ body {
   
   .app.sidebar-open .menu-toggle {
     left: 1rem;
+  }
+  
+  .billing-warning {
+    top: 0.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    max-width: none;
+  }
+  
+  .billing-warning-content {
+    padding: 0.875rem 1rem;
+    font-size: 0.8125rem;
+  }
+  
+  .billing-warning-text strong {
+    font-size: 0.875rem;
   }
 }
 

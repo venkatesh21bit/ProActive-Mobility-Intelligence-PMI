@@ -120,7 +120,7 @@ async def get_dashboard_stats(db: AsyncSession = Depends(get_db_session)):
 
 @router.get("/alerts", response_model=List[AlertItem])
 async def get_recent_alerts(
-    limit: int = 10,
+    limit: int = 100,
     db: AsyncSession = Depends(get_db_session)
 ):
     """Get recent critical alerts"""
