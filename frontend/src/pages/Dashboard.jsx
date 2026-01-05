@@ -124,36 +124,36 @@ export default function Dashboard() {
       </div>
 
       {/* Live Agent Activity */}
-      <div style={{ background: 'linear-gradient(135deg, #991b1b 0%, #dc2626 100%)', borderRadius: '1rem', padding: '2rem', marginBottom: '2rem', color: '#fff', border: '2px solid #ef4444' }}>
+      <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', borderRadius: '1rem', padding: '2rem', marginBottom: '2rem', color: '#fff', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-          <AlertTriangle size={28} />
+          <Activity size={28} style={{ color: '#8b5cf6' }} />
           <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Live Agent Activity</h2>
-          <span style={{ marginLeft: 'auto', background: 'rgba(239, 68, 68, 0.3)', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: '600', border: '1px solid rgba(239, 68, 68, 0.5)' }}>
-            <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%', marginRight: '0.5rem' }}></span>
-            Systems Disabled - Billing Issue
+          <span style={{ marginLeft: 'auto', background: 'rgba(34, 197, 94, 0.2)', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: '600', border: '1px solid rgba(34, 197, 94, 0.5)' }}>
+            <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%', marginRight: '0.5rem', animation: 'pulse 2s infinite' }}></span>
+            All Systems Active
           </span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
           {agentActivity.length > 0 ? agentActivity.map((activity, idx) => {
             const Icon = activity.icon;
             return (
-              <div key={idx} style={{ background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', borderRadius: '0.75rem', padding: '1rem', border: '1px solid rgba(239, 68, 68, 0.3)', opacity: 0.6 }}>
+              <div key={idx} style={{ background: 'rgba(139, 92, 246, 0.1)', backdropFilter: 'blur(10px)', borderRadius: '0.75rem', padding: '1rem', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                  <Icon size={20} />
+                  <Icon size={20} style={{ color: '#8b5cf6' }} />
                   <span style={{ fontWeight: '600', fontSize: '0.9375rem' }}>{activity.agent}</span>
                 </div>
                 <p style={{ margin: 0, fontSize: '0.875rem', opacity: 0.9 }}>{activity.action}</p>
                 <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '6px', height: '6px', background: '#ef4444', borderRadius: '50%' }}></div>
-                  Disabled
+                  <div style={{ width: '6px', height: '6px', background: '#22c55e', borderRadius: '50%' }}></div>
+                  Active
                 </div>
               </div>
             );
           }) : (
             <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '0.75rem' }}>
-              <AlertTriangle size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-              <p style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>No Recent Alerts</p>
-              <p style={{ fontSize: '0.875rem', opacity: 0.8 }}>All systems are operating normally.</p>
+              <Activity size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+              <p style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>No Recent Activity</p>
+              <p style={{ fontSize: '0.875rem', opacity: 0.8 }}>Agents are standing by.</p>
             </div>
           )}
         </div>
