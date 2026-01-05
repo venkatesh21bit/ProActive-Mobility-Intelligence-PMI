@@ -20,7 +20,7 @@ A cutting-edge AI-powered platform for predictive vehicle maintenance, anomaly d
 - ✅ **Multi-Agent Architecture** - 6 autonomous agents powered by Ray
 - ✅ **UEBA Analytics** - User Entity Behavior Analytics for fraud detection
 - ✅ **Manufacturing Insights** - NLP-powered quality feedback analysis
-- ✅ **Automated Alerts** - SMS/Voice notifications via Twilio
+- ✅ **Automated Alerts** - SMS/Voice notification via Twilio
 - ✅ **Web Dashboard** - React-based real-time monitoring
 - ✅ **Mobile App** - React Native iOS/Android applications
 
